@@ -73,9 +73,11 @@ static float			LengthSquared( const SVec3 v )
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-static float			Length( const SVec3 v )
+static double			Length( const SVec3 v )
 {
-	return sqrtf(LengthSquared(v));
+	const float fLengthSquared = LengthSquared(v);
+	if (fLengthSquared <= FLT_MAX) return sqrtf(fLengthSquared);
+	return sqrt((double)v.x*v.x + (double)v.y*v.y + (double)v.z*v.z);
 }
 
 static SVec3		Normalize( const SVec3 v )
@@ -424,9 +426,11 @@ static const int g_iCells = 2048;
 // results for the same effective input value fVal.
 static NOINLINE int FindGridCell(const float fMin, const float fMax, const float fVal)
 {
-	const float fIndex = g_iCells * ((fVal-fMin)/(fMax-fMin));
-	const int iIndex = (int)fIndex;
-	return iIndex < g_iCells ? (iIndex >= 0 ? iIndex : 0) : (g_iCells - 1);
+	double fIndex;
+	if (!(fMax > fMin)) return 0;
+	fIndex = (double)g_iCells * (((double)fVal-(double)fMin)/((double)fMax-(double)fMin));
+	if (fIndex <= 0.0) return 0;
+	return fIndex < g_iCells ? (int)fIndex : (g_iCells - 1);
 }
 
 static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext * pContext, const int iL_in, const int iR_in);
@@ -974,15 +978,15 @@ static void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMi
 		if ( NotZero(fSignedAreaSTx2) )
 		{
 			const float fAbsArea = fabsf(fSignedAreaSTx2);
-			const float fLenOs = Length(vOs);
-			const float fLenOt = Length(vOt);
+			const double fLenOs = Length(vOs);
+			const double fLenOt = Length(vOt);
 			const float fS = (pTriInfos[f].iFlag&ORIENT_PRESERVING)==0 ? (-1.0f) : 1.0f;
-			if ( NotZero(fLenOs) ) pTriInfos[f].vOs = vscale(fS/fLenOs, vOs);
-			if ( NotZero(fLenOt) ) pTriInfos[f].vOt = vscale(fS/fLenOt, vOt);
+			if ( fLenOs > FLT_MIN ) pTriInfos[f].vOs = vscale((float)(fS/fLenOs), vOs);
+			if ( fLenOt > FLT_MIN ) pTriInfos[f].vOt = vscale((float)(fS/fLenOt), vOt);
 
 			// evaluate magnitudes prior to normalization of vOs and vOt
-			pTriInfos[f].fMagS = fLenOs / fAbsArea;
-			pTriInfos[f].fMagT = fLenOt / fAbsArea;
+			pTriInfos[f].fMagS = (float)(fLenOs / fAbsArea);
+			pTriInfos[f].fMagT = (float)(fLenOt / fAbsArea);
 
 			// if this is a good triangle
 			if ( NotZero(pTriInfos[f].fMagS) && NotZero(pTriInfos[f].fMagT))
