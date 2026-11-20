@@ -1,0 +1,134 @@
+# Build outputs / binaries
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+[Dd]ebug/x64/
+[Dd]ebugPublic/x64/
+[Rr]elease/x64/
+[Rr]eleases/x64/
+[Dd]ebug/x86/
+[Dd]ebugPublic/x86/
+[Rr]elease/x86/
+[Rr]eleases/x86/
+[Bb]in/
+[Bb]in/x64/
+[Bb]in/x86/
+[Bb]uild/
+[Oo]bj/
+[Oo]bj/x64/
+[Oo]bj/x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Aa][Rr][Mm]64[Ee][Cc]/
+bld/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+ipch/
+*.o
+*_i.c
+*_p.c
+*_h.h
+*.meta
+*.obj
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.iobj
+*.ipdb
+*.exp
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Precompiled headers
+*.pch
+*.gch
+
+# Visual Studio / MSBuild
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.env
+*.userprefs
+*.psess
+*.vsp
+*.vspx
+*.sap
+mono_crash.*
+*.binlog
+*.tlog
+MSBuild_Logs/
+
+# Backup / upgrade files
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+MigrationBackup/
+
+# Test / coverage artifacts
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+[Tt]est[Rr]esult*/
+*.trx
+*.received.*
+
+# Cache / temporary files
+*.tmp
+tmp*.*
+*.log
+*.bak
+*.cache
+*.[Cc]ache
+!?*.[Cc]ache/
+
+# IDE / editor files
+.vscode/*
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
+# !.vscode/*.code-snippets
+.history/
+
+# Miscellaneous
+*.GhostDoc.xml
+*.nvuser
+*.dbmdl
+*.jfm
+*.pfx
+*.publishsettings
+*.pubxml
+*.publishproj
+.DS_Store
+Thumbs.db
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+CMakeUserPresets.json
