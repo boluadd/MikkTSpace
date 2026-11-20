@@ -8,6 +8,7 @@
 
 #include <assert.h>
 //#include <stdio.h>
+#include <limits.h>
 #include <math.h>
 #include <string.h>
 #include <float.h>
@@ -155,6 +156,7 @@ static int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupT
 static tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], const SGroup pGroups[],
                              const int iNrActiveGroups, const int piTriListIn[], const float fThresCos,
                              const SMikkTSpaceContext * pContext);
+static int GetMaxTriangleCount(void);
 
 static int MakeIndex(const int iFace, const int iVert)
 {
@@ -223,24 +225,43 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 	int iNrTrianglesIn = 0, f=0, t=0, i=0;
 	int iNrTSPaces = 0, iTotTris = 0, iDegenTriangles = 0, iNrMaxGroups = 0;
 	int iNrActiveGroups = 0, index = 0;
-	const int iNrFaces = pContext->m_pInterface->m_getNumFaces(pContext);
+	int iNrFaces = 0;
+	int iMaxTriangles = 0;
 	tbool bRes = TFALSE;
-	const float fThresCos = (float) cos((fAngularThreshold*(float)M_PI)/180.0f);
+	float fThresCos;
+
+	if (pContext == NULL || pContext->m_pInterface == NULL ||
+		pContext->m_pInterface->m_getNumFaces == NULL)
+		return TFALSE;
+
+	iNrFaces = pContext->m_pInterface->m_getNumFaces(pContext);
+	fThresCos = (float) cos((fAngularThreshold*(float)M_PI)/180.0f);
 
 	// verify all call-backs have been set
-	if ( pContext->m_pInterface->m_getNumFaces==NULL ||
-		pContext->m_pInterface->m_getNumVerticesOfFace==NULL ||
+	if ( pContext->m_pInterface->m_getNumVerticesOfFace==NULL ||
 		pContext->m_pInterface->m_getPosition==NULL ||
 		pContext->m_pInterface->m_getNormal==NULL ||
 		pContext->m_pInterface->m_getTexCoord==NULL )
+		return TFALSE;
+
+	iMaxTriangles = GetMaxTriangleCount();
+	if (iNrFaces < 0 || iNrFaces > INT_MAX/4 + 1)
 		return TFALSE;
 
 	// count triangles on supported faces
 	for (f=0; f<iNrFaces; f++)
 	{
 		const int verts = pContext->m_pInterface->m_getNumVerticesOfFace(pContext, f);
-		if (verts==3) ++iNrTrianglesIn;
-		else if (verts==4) iNrTrianglesIn += 2;
+		if (verts==3)
+		{
+			if (iNrTrianglesIn > iMaxTriangles-1) return TFALSE;
+			++iNrTrianglesIn;
+		}
+		else if (verts==4)
+		{
+			if (iNrTrianglesIn > iMaxTriangles-2) return TFALSE;
+			iNrTrianglesIn += 2;
+		}
 	}
 	if (iNrTrianglesIn<=0) return TFALSE;
 
@@ -412,6 +433,27 @@ typedef struct {
 	float vert[3];
 	int index;
 } STmpVert;
+
+static int GetMaxTriangleCount(void)
+{
+	const size_t maxSize = (size_t)-1;
+	size_t maxTriangles = (size_t)INT_MAX / 3;
+
+	if (maxTriangles > maxSize / (sizeof(int)*3))
+		maxTriangles = maxSize / (sizeof(int)*3);
+	if (maxTriangles > maxSize / sizeof(STriInfo))
+		maxTriangles = maxSize / sizeof(STriInfo);
+	if (maxTriangles > maxSize / (sizeof(SGroup)*3))
+		maxTriangles = maxSize / (sizeof(SGroup)*3);
+	if (maxTriangles > maxSize / (sizeof(STSpace)*3))
+		maxTriangles = maxSize / (sizeof(STSpace)*3);
+	if (maxTriangles > maxSize / (sizeof(STmpVert)*3))
+		maxTriangles = maxSize / (sizeof(STmpVert)*3);
+	if (maxTriangles > maxSize / sizeof(SSubGroup))
+		maxTriangles = maxSize / sizeof(SSubGroup);
+
+	return (int)maxTriangles;
+}
 
 static const int g_iCells = 2048;
 
@@ -587,7 +629,7 @@ static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], cons
 	if (dy>dx && dy>dz) channel=1;
 	else if (dz>dx) channel=2;
 
-	fSep = 0.5f*(fvMax[channel]+fvMin[channel]);
+	fSep = (float)(0.5*((double)fvMax[channel]+(double)fvMin[channel]));
 
 	// stop if all vertices are NaNs
 	if (!isfinite(fSep))
@@ -1036,7 +1078,9 @@ static void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMi
 	
 	// match up edge pairs
 	{
-		SEdge * pEdges = (SEdge *) malloc(sizeof(SEdge)*iNrTrianglesIn*3);
+		SEdge * pEdges = NULL;
+		if ((size_t)iNrTrianglesIn <= (size_t)-1 / (sizeof(SEdge)*3))
+			pEdges = (SEdge *) malloc(sizeof(SEdge)*iNrTrianglesIn*3);
 		if (pEdges==NULL)
 			BuildNeighborsSlow(pTriInfos, piTriListIn, iNrTrianglesIn);
 		else
