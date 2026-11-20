@@ -3,7 +3,8 @@
  */
 /**
  *  Copyright (C) 2011 by Morten S. Mikkelsen
- *
+ *	Copyright (C) 2026 by RwFrame
+ * 
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the authors be held liable for any damages
  *  arising from the use of this software.
@@ -22,7 +23,7 @@
  */
 
 #include <assert.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <float.h>
@@ -728,7 +729,7 @@ static void MergeVertsSlow(int piTriList_in_and_out[], const SMikkTSpaceContext 
 
 static void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
 {
-	int iNumUniqueVerts = 0, t=0, i=0;
+	int t=0, i=0;
 	for (t=0; t<iNrTrianglesIn; t++)
 	{
 		for (i=0; i<3; i++)
@@ -751,7 +752,8 @@ static void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[], cons
 					const SVec3 vP2 = GetPosition(pContext, index2);
 					const SVec3 vN2 = GetNormal(pContext, index2);
 					const SVec3 vT2 = GetTexCoord(pContext, index2);
-					
+					index2rec = index2;
+
 					if (veq(vP,vP2) && veq(vN,vN2) && veq(vT,vT2))
 						bFound = TTRUE;
 					else
@@ -761,8 +763,6 @@ static void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[], cons
 			}
 
 			assert(bFound);
-			// if we found our own
-			if (index2rec == index) { ++iNumUniqueVerts; }
 
 			piTriList_in_and_out[offs] = index2rec;
 		}
